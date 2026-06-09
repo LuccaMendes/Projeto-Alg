@@ -1,4 +1,4 @@
-# Usuários pré-cadastrados:
+# Usuários pré-cadastrados: 
 #   admin / 123    (ADM)
 #   cliente1 / 123 (CLIENTE)
 

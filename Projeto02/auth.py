@@ -24,6 +24,8 @@ def cadastrar_usuario():
         console.print("[red]Senha não pode ser vazia![/red]")
         return False
 
+    i
+
     tipo = input("Tipo (ADM/CLIENTE): ")
     tipo = tipo.upper()
     if tipo != "ADM" and tipo != "CLIENTE":
