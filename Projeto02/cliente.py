@@ -1,5 +1,9 @@
 import fazenda
 import relatorios
+from rich.console import Console
+from rich.table import Table
+
+console = Console()
 
 historico_compras = []
 
@@ -9,42 +13,49 @@ HOJE_ANO = 2026
 
 
 def ver_estoque_disponivel():
-    print("")
-    print("========== DISPONÍVEL PARA COMPRA ==========")
-    print(f"Leite: {fazenda.estoque_leite['litros']} L - R$ {fazenda.estoque_leite['preco_por_litro']:.2f}/L")
-    print("")
-    print("--- Produtos ---")
-    if len(fazenda.estoque_produtos) == 0:
-        print("(nenhum)")
-    else:
-        for p in fazenda.estoque_produtos:
-            print(f"  {p['nome']} - {p['peso_kg']:.2f} kg disponíveis - R$ {p['preco_kg']:.2f}/kg")
+    console.print("\n[cyan]========== DISPONÍVEL PARA COMPRA ==========[/cyan]")
+    console.print(f"[green]Leite:[/green] {fazenda.estoque_leite['litros']} L - R$ {fazenda.estoque_leite['preco_por_litro']:.2f}/L")
 
-    print("")
-    print("--- Animais ---")
+    if len(fazenda.estoque_produtos) == 0:
+        console.print("[yellow]Produtos: (nenhum)[/yellow]")
+    else:
+        tabela = Table(title="Produtos Disponíveis")
+        tabela.add_column("Produto", style="white")
+        tabela.add_column("Disponível (kg)", justify="right")
+        tabela.add_column("R$/kg", justify="right", style="cyan")
+        for p in fazenda.estoque_produtos:
+            tabela.add_row(p["nome"], f"{p['peso_kg']:.2f}", f"{p['preco_kg']:.2f}")
+        console.print(tabela)
+
     disponiveis = []
     for a in fazenda.rebanho:
         if a["status"] == "Disponivel para venda":
             disponiveis.append(a)
+
     if len(disponiveis) == 0:
-        print("(nenhum)")
+        console.print("[yellow]Animais à venda: (nenhum)[/yellow]")
     else:
+        tabela = Table(title="Animais à Venda")
+        tabela.add_column("Tipo", style="green")
+        tabela.add_column("Brinco")
+        tabela.add_column("Preço (R$)", justify="right", style="cyan")
         for a in disponiveis:
-            print(f"  {a['tipo']} - Brinco {a['brinco']} - R$ {a['preco']:.2f}")
+            tabela.add_row(a["tipo"], a["brinco"], f"{a['preco']:.2f}")
+        console.print(tabela)
 
 
 def comprar_leite(usuario_logado):
     if fazenda.estoque_leite["litros"] == 0:
-        print("Sem leite em estoque!")
+        console.print("[red]Sem leite em estoque![/red]")
         return
 
     print(f"Disponível: {fazenda.estoque_leite['litros']} L a R$ {fazenda.estoque_leite['preco_por_litro']:.2f}/L")
     qtd = float(input("Quantos litros deseja comprar? "))
     if qtd <= 0:
-        print("Quantidade inválida!")
+        console.print("[red]Quantidade inválida![/red]")
         return
     if qtd > fazenda.estoque_leite["litros"]:
-        print("Estoque insuficiente!")
+        console.print("[red]Estoque insuficiente![/red]")
         return
 
     valor = qtd * fazenda.estoque_leite["preco_por_litro"]
@@ -59,32 +70,32 @@ def comprar_leite(usuario_logado):
 
     relatorios.registrar_movimentacao("venda", f"{qtd} L de leite", qtd, usuario_logado["login"])
 
-    print(f"Compra realizada! Total: R$ {valor:.2f}")
+    console.print(f"[green]Compra realizada! Total: R$ {valor:.2f}[/green]")
 
 
 def comprar_produto(usuario_logado):
     if len(fazenda.estoque_produtos) == 0:
-        print("Sem produtos em estoque!")
+        console.print("[red]Sem produtos em estoque![/red]")
         return
 
-    print("===== PRODUTOS DISPONÍVEIS =====")
+    console.print("[cyan]===== PRODUTOS DISPONÍVEIS =====[/cyan]")
     for i in range(len(fazenda.estoque_produtos)):
         p = fazenda.estoque_produtos[i]
         print(f"{i+1} - {p['nome']} - {p['peso_kg']:.2f} kg - R$ {p['preco_kg']:.2f}/kg")
 
     escolha = int(input("Número do produto: "))
     if escolha < 1 or escolha > len(fazenda.estoque_produtos):
-        print("Inválido!")
+        console.print("[red]Inválido![/red]")
         return
 
     idx = escolha - 1
     produto = fazenda.estoque_produtos[idx]
     peso_quer = float(input("Quantos kg deseja comprar? "))
     if peso_quer <= 0:
-        print("Quantidade inválida!")
+        console.print("[red]Quantidade inválida![/red]")
         return
     if peso_quer > produto["peso_kg"]:
-        print("Peso indisponível em estoque!")
+        console.print("[red]Peso indisponível em estoque![/red]")
         return
 
     valor = peso_quer * produto["preco_kg"]
@@ -100,7 +111,7 @@ def comprar_produto(usuario_logado):
 
     relatorios.registrar_movimentacao("venda", f"{peso_quer}kg de {nome_prod}", peso_quer, usuario_logado["login"])
 
-    print(f"Compra realizada! Total: R$ {valor:.2f}")
+    console.print(f"[green]Compra realizada! Total: R$ {valor:.2f}[/green]")
 
     if produto["peso_kg"] == 0:
         fazenda.estoque_produtos.pop(idx)
@@ -113,17 +124,17 @@ def comprar_animal(usuario_logado):
             disponiveis.append(a)
 
     if len(disponiveis) == 0:
-        print("Nenhum animal à venda!")
+        console.print("[red]Nenhum animal à venda![/red]")
         return
 
-    print("===== ANIMAIS À VENDA =====")
+    console.print("[cyan]===== ANIMAIS À VENDA =====[/cyan]")
     for i in range(len(disponiveis)):
         a = disponiveis[i]
         print(f"{i+1} - {a['tipo']} - Brinco {a['brinco']} - R$ {a['preco']:.2f}")
 
     escolha = int(input("Número do animal: "))
     if escolha < 1 or escolha > len(disponiveis):
-        print("Inválido!")
+        console.print("[red]Inválido![/red]")
         return
 
     animal = disponiveis[escolha - 1]
@@ -138,7 +149,7 @@ def comprar_animal(usuario_logado):
     relatorios.registrar_movimentacao("venda", f"{animal['tipo']} brinco {animal['brinco']}", 1, usuario_logado["login"])
 
     fazenda.rebanho.remove(animal)
-    print(f"Animal comprado por R$ {animal['preco']:.2f}!")
+    console.print(f"[green]Animal comprado por R$ {animal['preco']:.2f}![/green]")
 
 
 def agendar_retirada(usuario_logado):
@@ -150,7 +161,7 @@ def agendar_retirada(usuario_logado):
     ano = int(input("Ano: "))
 
     if mes < 1 or mes > 12:
-        print("Mês inválido!")
+        console.print("[red]Mês inválido![/red]")
         return
 
     dias_max = 31
@@ -163,17 +174,17 @@ def agendar_retirada(usuario_logado):
             dias_max = 28
 
     if dia < 1 or dia > dias_max:
-        print(f"Dia inválido! O mês {mes} tem {dias_max} dias.")
+        console.print(f"[red]Dia inválido! O mês {mes} tem {dias_max} dias.[/red]")
         return
 
     if ano < HOJE_ANO:
-        print("Ano inválido! Não é possível agendar para o passado.")
+        console.print("[red]Ano inválido! Não é possível agendar para o passado.[/red]")
         return
     if ano == HOJE_ANO and mes < HOJE_MES:
-        print("Mês inválido! Esse mês já passou.")
+        console.print("[red]Mês inválido! Esse mês já passou.[/red]")
         return
     if ano == HOJE_ANO and mes == HOJE_MES and dia < HOJE_DIA:
-        print("Dia inválido! Esse dia já passou.")
+        console.print("[red]Dia inválido! Esse dia já passou.[/red]")
         return
 
     print("--- Horário da retirada ---")
@@ -181,10 +192,10 @@ def agendar_retirada(usuario_logado):
     minuto = int(input("Minuto (0-59): "))
 
     if hora < 6 or hora > 17:
-        print("Horário inválido! A fazenda atende das 6h às 18h.")
+        console.print("[red]Horário inválido! A fazenda atende das 6h às 18h.[/red]")
         return
     if minuto < 0 or minuto > 59:
-        print("Minuto inválido!")
+        console.print("[red]Minuto inválido![/red]")
         return
 
     if dia < 10:
@@ -214,14 +225,14 @@ def agendar_retirada(usuario_logado):
         "horario": horario
     }
 
-    print(f"Retirada agendada para {data} às {horario}!")
+    console.print(f"[green]Retirada agendada para {data} às {horario}![/green]")
 
     relatorios.gerar_recibo(usuario_logado, agendamento, historico_compras)
+    relatorios.gerar_recibo_pdf(usuario_logado, agendamento, historico_compras)
 
 
 def minhas_compras(usuario_logado):
-    print("")
-    print("========== MINHAS COMPRAS ==========")
+    console.print("\n[cyan]========== MINHAS COMPRAS ==========[/cyan]")
 
     minhas = []
     for c in historico_compras:
@@ -229,35 +240,37 @@ def minhas_compras(usuario_logado):
             minhas.append(c)
 
     if len(minhas) == 0:
-        print("(nenhuma compra)")
+        console.print("[yellow](nenhuma compra)[/yellow]")
         return
 
-    print("+----------------------------------+--------------+")
-    print("| Item                             | Valor (R$)   |")
-    print("+----------------------------------+--------------+")
+    tabela = Table()
+    tabela.add_column("Item", style="white")
+    tabela.add_column("Valor (R$)", justify="right", style="green")
+
     total = 0
     for c in minhas:
-        print(f"| {c['item']:<32} | {c['valor']:>12.2f} |")
+        tabela.add_row(c["item"], f"{c['valor']:.2f}")
         total = total + c["valor"]
-    print("+----------------------------------+--------------+")
-    print(f"TOTAL GASTO: R$ {total:.2f}")
+
+    console.print(tabela)
+    console.print(f"[yellow]TOTAL GASTO: R$ {total:.2f}[/yellow]")
 
 
 def menu_cliente(usuario_logado):
     while True:
         print("")
-        print("========== MENU CLIENTE ==========")
+        console.print("[cyan]========== MENU CLIENTE ==========[/cyan]")
         print("1 - Ver estoque disponível")
         print("2 - Comprar leite")
         print("3 - Comprar produto fabricado")
         print("4 - Comprar animal")
-        print("5 - Agendar retirada (gera recibo)")
+        print("5 - Agendar retirada (gera recibo + PDF)")
         print("6 - Minhas compras")
         print("0 - Logout")
         op = input("Escolha: ")
 
         if op == "0":
-            print("Logout realizado!")
+            console.print("[yellow]Logout realizado![/yellow]")
             break
         elif op == "1":
             ver_estoque_disponivel()
@@ -272,4 +285,4 @@ def menu_cliente(usuario_logado):
         elif op == "6":
             minhas_compras(usuario_logado)
         else:
-            print("Opção inválida!")
+            console.print("[red]Opção inválida![/red]")

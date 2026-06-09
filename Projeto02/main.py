@@ -1,27 +1,31 @@
+# Usuários pré-cadastrados:
 #   admin / 123    (ADM)
 #   cliente1 / 123 (CLIENTE)
 
 import auth
 import fazenda
 import cliente
+from rich.console import Console
+
+console = Console()
 
 
 def main():
     print("")
-    print("=============================================")
-    print("   SISTEMA DE GESTÃO - FAZENDA SERTÃO")
-    print("=============================================")
+    console.print("[green]=============================================[/green]")
+    console.print("[green]   SISTEMA DE GESTÃO - FAZENDA SERTÃO[/green]")
+    console.print("[green]=============================================[/green]")
 
     while True:
         print("")
-        print("========== MENU PRINCIPAL ==========")
+        console.print("[cyan]========== MENU PRINCIPAL ==========[/cyan]")
         print("1 - Login")
         print("2 - Cadastrar usuário")
         print("0 - Sair")
         opcao = input("Escolha: ")
 
         if opcao == "0":
-            print("Saindo do sistema. Até mais!")
+            console.print("[yellow]Saindo do sistema. Até mais![/yellow]")
             break
 
         elif opcao == "1":
@@ -38,7 +42,7 @@ def main():
             auth.cadastrar_usuario()
 
         else:
-            print("Opção inválida!")
+            console.print("[red]Opção inválida![/red]")
 
 
 main()

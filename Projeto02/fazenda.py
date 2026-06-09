@@ -1,4 +1,8 @@
 import relatorios
+from rich.console import Console
+from rich.table import Table
+
+console = Console()
 
 rebanho = []
 estoque_leite = {"litros": 0, "preco_por_litro": 0.0}
@@ -23,17 +27,17 @@ def cadastrar_animal():
     elif t == "4":
         tipo_animal = "Suíno"
     else:
-        print("Tipo inválido!")
+        console.print("[red]Tipo inválido![/red]")
         return
 
     brinco = input("Brinco/identificação: ")
     if len(brinco) == 0:
-        print("Brinco não pode ser vazio!")
+        console.print("[red]Brinco não pode ser vazio![/red]")
         return
 
     for a in rebanho:
         if a["brinco"] == brinco:
-            print("Já existe um animal com esse brinco!")
+            console.print("[red]Já existe um animal com esse brinco![/red]")
             return
 
     print("Status: 1-Em lactacao, 2-Para engorda, 3-Disponivel para venda")
@@ -45,12 +49,12 @@ def cadastrar_animal():
     elif s == "3":
         status = "Disponivel para venda"
     else:
-        print("Status inválido!")
+        console.print("[red]Status inválido![/red]")
         return
 
     preco = float(input("Preço de venda: "))
     if preco <= 0:
-        print("Preço deve ser maior que zero!")
+        console.print("[red]Preço deve ser maior que zero![/red]")
         return
 
     novo_animal = {
@@ -60,19 +64,19 @@ def cadastrar_animal():
         "preco": preco
     }
     rebanho.append(novo_animal)
-    print("Animal cadastrado!")
+    console.print("[green]Animal cadastrado![/green]")
 
 
 def buscar_animal():
     brinco = input("Brinco do animal: ")
     for a in rebanho:
         if a["brinco"] == brinco:
-            print(f"Tipo: {a['tipo']}")
-            print(f"Brinco: {a['brinco']}")
-            print(f"Status: {a['status']}")
-            print(f"Preço: R$ {a['preco']:.2f}")
+            console.print(f"[cyan]Tipo:[/cyan] {a['tipo']}")
+            console.print(f"[cyan]Brinco:[/cyan] {a['brinco']}")
+            console.print(f"[cyan]Status:[/cyan] {a['status']}")
+            console.print(f"[cyan]Preço:[/cyan] R$ {a['preco']:.2f}")
             return
-    print("Animal não encontrado!")
+    console.print("[red]Animal não encontrado![/red]")
 
 
 def atualizar_animal():
@@ -88,19 +92,19 @@ def atualizar_animal():
             elif s == "3":
                 novo_status = "Disponivel para venda"
             else:
-                print("Status inválido!")
+                console.print("[red]Status inválido![/red]")
                 return
 
             novo_preco = float(input("Novo preço: "))
             if novo_preco <= 0:
-                print("Preço deve ser maior que zero!")
+                console.print("[red]Preço deve ser maior que zero![/red]")
                 return
 
             a["status"] = novo_status
             a["preco"] = novo_preco
-            print("Animal atualizado!")
+            console.print("[green]Animal atualizado![/green]")
             return
-    print("Animal não encontrado!")
+    console.print("[red]Animal não encontrado![/red]")
 
 
 def remover_animal():
@@ -108,33 +112,36 @@ def remover_animal():
     for a in rebanho:
         if a["brinco"] == brinco:
             rebanho.remove(a)
-            print("Animal removido!")
+            console.print("[green]Animal removido![/green]")
             return
-    print("Animal não encontrado!")
+    console.print("[red]Animal não encontrado![/red]")
 
 
 def listar_rebanho():
     if len(rebanho) == 0:
-        print("Rebanho vazio!")
+        console.print("[yellow]Rebanho vazio![/yellow]")
         return
 
-    print("")
-    print("+----------------+----------+----------------------------+------------+")
-    print("| Tipo           | Brinco   | Status                     | Preço (R$) |")
-    print("+----------------+----------+----------------------------+------------+")
+    tabela = Table(title="REBANHO DA FAZENDA")
+    tabela.add_column("Tipo", style="green")
+    tabela.add_column("Brinco", style="white")
+    tabela.add_column("Status", style="yellow")
+    tabela.add_column("Preço (R$)", justify="right", style="cyan")
+
     for a in rebanho:
-        print(f"| {a['tipo']:<14} | {a['brinco']:<8} | {a['status']:<26} | {a['preco']:>10.2f} |")
-    print("+----------------+----------+----------------------------+------------+")
+        tabela.add_row(a["tipo"], a["brinco"], a["status"], f"{a['preco']:.2f}")
+
+    console.print(tabela)
 
 
 def registrar_leite():
     litros = float(input("Litros ordenhados: "))
     if litros <= 0:
-        print("Litros deve ser maior que zero!")
+        console.print("[red]Litros deve ser maior que zero![/red]")
         return
     preco = float(input("Preço por litro: "))
     if preco <= 0:
-        print("Preço deve ser maior que zero!")
+        console.print("[red]Preço deve ser maior que zero![/red]")
         return
 
     estoque_leite["litros"] = estoque_leite["litros"] + litros
@@ -142,18 +149,18 @@ def registrar_leite():
 
     relatorios.registrar_movimentacao("producao", f"{litros} L de leite", litros, "ADM")
 
-    print(f"Estoque atual: {estoque_leite['litros']} L a R$ {estoque_leite['preco_por_litro']:.2f}/L")
+    console.print(f"[green]Estoque atual: {estoque_leite['litros']} L a R$ {estoque_leite['preco_por_litro']:.2f}/L[/green]")
 
 
 def fabricar_produto():
-    print("===== RECEITAS DISPONÍVEIS =====")
+    console.print("[cyan]===== RECEITAS DISPONÍVEIS =====[/cyan]")
     for i in range(len(receitas)):
         r = receitas[i]
         print(f"{i+1} - {r['nome']} (usa {r['litros_por_kg']} L de leite por kg)")
 
     escolha = int(input("Número da receita: "))
     if escolha < 1 or escolha > len(receitas):
-        print("Opção inválida!")
+        console.print("[red]Opção inválida![/red]")
         return
 
     receita = receitas[escolha - 1]
@@ -162,7 +169,7 @@ def fabricar_produto():
 
     kg = float(input(f"Quantos kg de {nome_prod} deseja fabricar? "))
     if kg <= 0:
-        print("Quantidade inválida!")
+        console.print("[red]Quantidade inválida![/red]")
         return
 
     litros_necessarios = kg * litros_por_kg
@@ -170,12 +177,12 @@ def fabricar_produto():
     print(f"Disponível em estoque: {estoque_leite['litros']} L")
 
     if litros_necessarios > estoque_leite["litros"]:
-        print("Leite insuficiente para fabricar este produto!")
+        console.print("[red]Leite insuficiente para fabricar este produto![/red]")
         return
 
     preco = float(input("Preço de venda por kg: "))
     if preco <= 0:
-        print("Preço deve ser maior que zero!")
+        console.print("[red]Preço deve ser maior que zero![/red]")
         return
 
     estoque_leite["litros"] = estoque_leite["litros"] - litros_necessarios
@@ -185,39 +192,46 @@ def fabricar_produto():
 
     relatorios.registrar_movimentacao("producao", f"{kg}kg de {nome_prod}", kg, "ADM")
 
-    print(f"Fabricado {kg}kg de {nome_prod}!")
-    print(f"Leite restante no estoque: {estoque_leite['litros']} L")
+    console.print(f"[green]Fabricado {kg}kg de {nome_prod}![/green]")
+    console.print(f"[yellow]Leite restante no estoque: {estoque_leite['litros']} L[/yellow]")
 
 
 def ver_estoque():
-    print("")
-    print("========== ESTOQUE COMPLETO ==========")
-    print(f"Leite: {estoque_leite['litros']} L - R$ {estoque_leite['preco_por_litro']:.2f}/L")
-    print("")
-    print("--- Produtos Fabricados ---")
-    if len(estoque_produtos) == 0:
-        print("(nenhum)")
-    else:
-        for p in estoque_produtos:
-            print(f"  {p['nome']} - {p['peso_kg']:.2f} kg - R$ {p['preco_kg']:.2f}/kg")
+    console.print("\n[cyan]===== ESTOQUE COMPLETO =====[/cyan]")
+    console.print(f"[green]Leite:[/green] {estoque_leite['litros']} L - R$ {estoque_leite['preco_por_litro']:.2f}/L")
 
-    print("")
-    print("--- Animais à Venda ---")
+    if len(estoque_produtos) == 0:
+        console.print("[yellow]Produtos fabricados: (nenhum)[/yellow]")
+    else:
+        tabela = Table(title="Produtos Fabricados")
+        tabela.add_column("Produto", style="white")
+        tabela.add_column("Peso (kg)", justify="right")
+        tabela.add_column("R$/kg", justify="right", style="cyan")
+        for p in estoque_produtos:
+            tabela.add_row(p["nome"], f"{p['peso_kg']:.2f}", f"{p['preco_kg']:.2f}")
+        console.print(tabela)
+
     disponiveis = []
     for a in rebanho:
         if a["status"] == "Disponivel para venda":
             disponiveis.append(a)
+
     if len(disponiveis) == 0:
-        print("(nenhum)")
+        console.print("[yellow]Animais à venda: (nenhum)[/yellow]")
     else:
+        tabela = Table(title="Animais à Venda")
+        tabela.add_column("Tipo", style="green")
+        tabela.add_column("Brinco")
+        tabela.add_column("Preço (R$)", justify="right", style="cyan")
         for a in disponiveis:
-            print(f"  {a['tipo']} - Brinco {a['brinco']} - R$ {a['preco']:.2f}")
+            tabela.add_row(a["tipo"], a["brinco"], f"{a['preco']:.2f}")
+        console.print(tabela)
 
 
 def menu_adm():
     while True:
         print("")
-        print("========== MENU ADM ==========")
+        console.print("[cyan]========== MENU ADM ==========[/cyan]")
         print("1 - Cadastrar animal")
         print("2 - Buscar animal")
         print("3 - Atualizar animal")
@@ -233,7 +247,7 @@ def menu_adm():
         op = input("Escolha: ")
 
         if op == "0":
-            print("Logout realizado!")
+            console.print("[yellow]Logout realizado![/yellow]")
             break
         elif op == "1":
             cadastrar_animal()
@@ -258,4 +272,4 @@ def menu_adm():
         elif op == "11":
             relatorios.ver_historico_movimentacoes()
         else:
-            print("Opção inválida!")
+            console.print("[red]Opção inválida![/red]")
