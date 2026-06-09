@@ -70,7 +70,7 @@ def comprar_produto(usuario_logado):
     print("===== PRODUTOS DISPONÍVEIS =====")
     for i in range(len(fazenda.estoque_produtos)):
         p = fazenda.estoque_produtos[i]
-        print(f"{i+1} - {p['nome']} - {p['peso_kg']} kg - R$ {p['preco_kg']}/kg")
+        print(f"{i+1} - {p['nome']} - {p['peso_kg']:.2f} kg - R$ {p['preco_kg']:.2f}/kg")
 
     escolha = int(input("Número do produto: "))
     if escolha < 1 or escolha > len(fazenda.estoque_produtos):
@@ -119,7 +119,7 @@ def comprar_animal(usuario_logado):
     print("===== ANIMAIS À VENDA =====")
     for i in range(len(disponiveis)):
         a = disponiveis[i]
-        print(f"{i+1} - {a['tipo']} - Brinco {a['brinco']} - R$ {a['preco']}")
+        print(f"{i+1} - {a['tipo']} - Brinco {a['brinco']} - R$ {a['preco']:.2f}")
 
     escolha = int(input("Número do animal: "))
     if escolha < 1 or escolha > len(disponiveis):

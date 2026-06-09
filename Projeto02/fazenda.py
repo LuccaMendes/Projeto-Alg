@@ -142,7 +142,7 @@ def registrar_leite():
 
     relatorios.registrar_movimentacao("producao", f"{litros} L de leite", litros, "ADM")
 
-    print(f"Estoque atual: {estoque_leite['litros']} L a R$ {estoque_leite['preco_por_litro']}/L")
+    print(f"Estoque atual: {estoque_leite['litros']} L a R$ {estoque_leite['preco_por_litro']:.2f}/L")
 
 
 def fabricar_produto():
